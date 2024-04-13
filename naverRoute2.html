@@ -51,6 +51,16 @@
     button:hover {
         background-color: #45a049;
     }
+
+    #restaurantList {
+        list-style-type: none;
+        padding: 0;
+        margin-top: 20px;
+    }
+
+    #restaurantList li {
+        margin-bottom: 5px;
+    }
 </style>
 </head>
 <body>
@@ -61,6 +71,7 @@
     <input type="text" id="destination" value="충청남도 천안시 동남구 두정동" readonly>
     <button onclick="findRoute()">경로 찾기</button>
     <div id="map"></div>
+    <ul id="restaurantList"></ul>
 
     <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6bpvouorsn&submodules=geocoder"></script>
     <script>
@@ -77,69 +88,76 @@
             var startAddress = document.getElementById('start').value;
             var destinationAddress = document.getElementById('destination').value;
 
-            // 출발지는 고정이므로 좌표를 직접 설정
-            var startCoords = new naver.maps.Point(127.1392512, 36.8102619); // 천안 백석대로 좌표
-
+            // 출발지 주소를 좌표로 변환하여 지도에 마커 표시
             naver.maps.Service.geocode({
-                address: destinationAddress
+                address: startAddress
             }, function(status, response) {
                 if (status !== naver.maps.Service.Status.OK || !response.result || !response.result.items || !response.result.items[0]) {
-                    alert('도착지를 찾을 수 없습니다.');
+                    alert('출발지를 찾을 수 없습니다.');
                     return;
                 }
 
-                var destinationCoords = response.result.items[0].point;
+                var startCoords = response.result.items[0].point;
 
-                var directionsService = new naver.maps.DirectionsService();
-                var directionsRenderer = new naver.maps.DirectionsRenderer({
-                    map: map,
-                    preserveViewport: true
-                });
-
-                var request = {
-                    start: startCoords,
-                    destination: destinationCoords,
-                    options: {
-                        mode: naver.maps.Directions.Mode.TRANSIT
+                // 도착지 주소를 좌표로 변환하여 지도에 마커 표시
+                naver.maps.Service.geocode({
+                    address: destinationAddress
+                }, function(status, response) {
+                    if (status !== naver.maps.Service.Status.OK || !response.result || !response.result.items || !response.result.items[0]) {
+                        alert('도착지를 찾을 수 없습니다.');
+                        return;
                     }
-                };
 
-                directionsService.route(request, function(response, status) {
-                    if (status === naver.maps.Directions.Service.Status.OK) {
-                        directionsRenderer.setDirections(response);
+                    var destinationCoords = response.result.items[0].point;
 
-                        // 중간 지점 계산
-                        var middlePoint = naver.maps.LatLngBounds.toPoint(naver.maps.LatLngBounds.bounds([startCoords, destinationCoords])).toLatLng();
+                    // 출발지와 도착지로 경로 표시
+                    var directionsService = new naver.maps.DirectionsService();
+                    var directionsRenderer = new naver.maps.DirectionsRenderer({
+                        map: map,
+                        preserveViewport: true
+                    });
 
-                        // 중간 지점 주변 맛집 검색
-                        var placesService = new naver.maps.PlacesService(map);
-                        placesService.search({
-                            location: middlePoint,
-                            radius: 1000, // 1km 반경 내에서 검색
-                            category: naver.maps.Service.Category.EAT_DRINK // 음식점 카테고리
-                        }, function(places, status) {
-                            if (status === naver.maps.Service.Status.OK) {
-                                // 맛집 리스트 표시
-                                var restaurantList = document.createElement('ul');
-                                restaurantList.style.listStyleType = 'none';
-                                restaurantList.style.padding = '0';
-                                restaurantList.style.marginTop = '20px';
+                    var request = {
+                        start: startCoords,
+                        destination: destinationCoords,
+                        options: {
+                            mode: naver.maps.Directions.Mode.TRANSIT
+                        }
+                    };
 
-                                for (var i = 0; i < places.length; i++) {
-                                    var place = places[i];
-                                    var listItem = document.createElement('li');
-                                    listItem.textContent = place.title;
-                                    restaurantList.appendChild(listItem);
+                    directionsService.route(request, function(response, status) {
+                        if (status === naver.maps.Directions.Service.Status.OK) {
+                            directionsRenderer.setDirections(response);
+
+                            // 중간 지점 계산
+                            var middlePoint = naver.maps.LatLngBounds.toPoint(naver.maps.LatLngBounds.bounds([startCoords, destinationCoords])).toLatLng();
+
+                            // 중간 지점 주변 맛집 검색
+                            var placesService = new naver.maps.PlacesService(map);
+                            placesService.search({
+                                location: middlePoint,
+                                radius: 1000, // 1km 반경 내에서 검색
+                                category: naver.maps.Service.Category.EAT_DRINK // 음식점 카테고리
+                            }, function(places, status) {
+                                if (status === naver.maps.Service.Status.OK) {
+                                    // 맛집 리스트 표시
+                                    var restaurantList = document.getElementById('restaurantList');
+                                    restaurantList.innerHTML = '';
+
+                                    for (var i = 0; i < places.length; i++) {
+                                        var place = places[i];
+                                        var listItem = document.createElement('li');
+                                        listItem.textContent = place.title;
+                                        restaurantList.appendChild(listItem);
+                                    }
+                                } else {
+                                    alert('주변 맛집을 찾을 수 없습니다.');
                                 }
-
-                                document.body.appendChild(restaurantList);
-                            } else {
-                                alert('주변 맛집을 찾을 수 없습니다.');
-                            }
-                        });
-                    } else {
-                        alert('경로를 찾을 수 없습니다.');
-                    }
+                            });
+                        } else {
+                            alert('경로를 찾을 수 없습니다.');
+                        }
+                    });
                 });
             });
         }
