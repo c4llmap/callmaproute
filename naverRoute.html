@@ -21,90 +21,93 @@
     <button onclick="findRoute()">경로 찾기</button>
     <div id="map"></div>
 
-    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6bpvouorsn"></script>
-    <script>
-        var mapOptions = {
-            center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 시청을 중심으로 설정
-            zoom: 10 // 지도 확대 레벨
-        };
+    <script type="text/javascript">
+        // Naver 지도 API 로드가 완료되면 실행될 콜백 함수
+        function initMap() {
+            var mapOptions = {
+                center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 시청을 중심으로 설정
+                zoom: 10 // 지도 확대 레벨
+            };
 
-        var map = new naver.maps.Map('map', mapOptions);
+            var map = new naver.maps.Map('map', mapOptions);
 
-        function findRoute() {
-            var startAddress = document.getElementById('start').value;
-            var destinationAddress = document.getElementById('destination').value;
+            function findRoute() {
+                var startAddress = document.getElementById('start').value;
+                var destinationAddress = document.getElementById('destination').value;
 
-            // 출발지 주소를 좌표로 변환
-            naver.maps.Service.geocode({
-                address: startAddress
-            }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK) {
-                    alert('출발지를 찾을 수 없습니다.');
-                    return;
-                }
-
-                var startCoords = new naver.maps.LatLng(response.result.items[0].point.y, response.result.items[0].point.x);
-
-                // 도착지 주소를 좌표로 변환
+                // 출발지 주소를 좌표로 변환
                 naver.maps.Service.geocode({
-                    address: destinationAddress
+                    address: startAddress
                 }, function(status, response) {
                     if (status !== naver.maps.Service.Status.OK) {
-                        alert('도착지를 찾을 수 없습니다.');
+                        alert('출발지를 찾을 수 없습니다.');
                         return;
                     }
 
-                    var destinationCoords = new naver.maps.LatLng(response.result.items[0].point.y, response.result.items[0].point.x);
+                    var startCoords = new naver.maps.LatLng(response.result.items[0].point.y, response.result.items[0].point.x);
 
-                    // 출발지와 도착지 좌표를 기반으로 경로 검색
-                    var directionsService = new naver.maps.DirectionsService();
-                    var directionsRenderer = new naver.maps.DirectionsRenderer({
-                        map: map,
-                        preserveViewport: true
-                    });
-
-                    var request = {
-                        start: startCoords,
-                        destination: destinationCoords,
-                        options: {
-                            mode: naver.maps.Directions.Mode.TRANSIT
+                    // 도착지 주소를 좌표로 변환
+                    naver.maps.Service.geocode({
+                        address: destinationAddress
+                    }, function(status, response) {
+                        if (status !== naver.maps.Service.Status.OK) {
+                            alert('도착지를 찾을 수 없습니다.');
+                            return;
                         }
-                    };
 
-                    directionsService.route(request, function(response, status) {
-                        if (status === naver.maps.Directions.Service.Status.OK) {
-                            directionsRenderer.setDirections(response);
+                        var destinationCoords = new naver.maps.LatLng(response.result.items[0].point.y, response.result.items[0].point.x);
 
-                            // 출발지와 도착지 사이의 중간 지점 계산
-                            var middlePoint = naver.maps.LatLngBounds.toPoint(naver.maps.LatLngBounds.bounds([startCoords, destinationCoords])).toLatLng();
+                        // 출발지와 도착지 좌표를 기반으로 경로 검색
+                        var directionsService = new naver.maps.DirectionsService();
+                        var directionsRenderer = new naver.maps.DirectionsRenderer({
+                            map: map,
+                            preserveViewport: true
+                        });
 
-                            // 중간 지점 주변의 맛집 검색
-                            var placesService = new naver.maps.PlacesService(map);
-                            placesService.search({
-                                location: middlePoint,
-                                radius: 1000, // 반경 1km 내에서 검색
-                                category: naver.maps.Service.Category.EAT_DRINK // 음식점 카테고리
-                            }, function(places, status) {
-                                if (status === naver.maps.Service.Status.OK) {
-                                    for (var i = 0; i < places.length; i++) {
-                                        var place = places[i];
-                                        var marker = new naver.maps.Marker({
-                                            map: map,
-                                            position: place.point,
-                                            title: place.title
-                                        });
+                        var request = {
+                            start: startCoords,
+                            destination: destinationCoords,
+                            options: {
+                                mode: naver.maps.Directions.Mode.TRANSIT
+                            }
+                        };
+
+                        directionsService.route(request, function(response, status) {
+                            if (status === naver.maps.Directions.Service.Status.OK) {
+                                directionsRenderer.setDirections(response);
+
+                                // 출발지와 도착지 사이의 중간 지점 계산
+                                var middlePoint = naver.maps.LatLngBounds.toPoint(naver.maps.LatLngBounds.bounds([startCoords, destinationCoords])).toLatLng();
+
+                                // 중간 지점 주변의 맛집 검색
+                                var placesService = new naver.maps.PlacesService(map);
+                                placesService.search({
+                                    location: middlePoint,
+                                    radius: 1000, // 반경 1km 내에서 검색
+                                    category: naver.maps.Service.Category.EAT_DRINK // 음식점 카테고리
+                                }, function(places, status) {
+                                    if (status === naver.maps.Service.Status.OK) {
+                                        for (var i = 0; i < places.length; i++) {
+                                            var place = places[i];
+                                            var marker = new naver.maps.Marker({
+                                                map: map,
+                                                position: place.point,
+                                                title: place.title
+                                            });
+                                        }
+                                    } else {
+                                        alert('주변 맛집을 찾을 수 없습니다.');
                                     }
-                                } else {
-                                    alert('주변 맛집을 찾을 수 없습니다.');
-                                }
-                            });
-                        } else {
-                            alert('경로를 찾을 수 없습니다.');
-                        }
+                                });
+                            } else {
+                                alert('경로를 찾을 수 없습니다.');
+                            }
+                        });
                     });
                 });
-            });
+            }
         }
     </script>
+    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=05WFFQU9hfXK3LER9TFyrmEbKID6ZSePuNHdCYB7&submodules=geocoder"></script>
 </body>
 </html>
