@@ -79,19 +79,7 @@
             var startAddress = document.getElementById('start').value;
             var destinationAddress = document.getElementById('destination').value;
 
-            // 출발지 주소 유효성 검사
-            if (!startAddress.trim()) {
-                alert('출발지를 입력하세요.');
-                return;
-            }
-
-            // 도착지 주소 유효성 검사
-            if (!destinationAddress.trim()) {
-                alert('도착지를 입력하세요.');
-                return;
-            }
-
-            // 출발지 주소를 세부 주소로 변환하여 지도에 마커 표시
+            // 출발지 주소를 좌표로 변환하여 지도에 마커 표시
             naver.maps.Service.geocode({
                 address: startAddress
             }, function(status, response) {
@@ -109,7 +97,7 @@
                     map: map
                 });
 
-                // 도착지 주소를 세부 주소로 변환하여 지도에 마커 표시
+                // 도착지 주소를 좌표로 변환하여 지도에 마커 표시
                 naver.maps.Service.geocode({
                     address: destinationAddress
                 }, function(status, response) {
