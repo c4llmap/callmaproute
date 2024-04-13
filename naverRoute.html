@@ -51,16 +51,34 @@
     button:hover {
         background-color: #45a049;
     }
+
+    .autocomplete-list {
+        position: absolute;
+        background-color: #f1f1f1;
+        border: 1px solid #ccc;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+
+    .autocomplete-item {
+        padding: 10px;
+        cursor: pointer;
+    }
+
+    .autocomplete-item:hover {
+        background-color: #ddd;
+    }
 </style>
 </head>
 <body>
     <h1>맛집과 경로 추천</h1>
     <label for="start">출발지 주소:</label>
     <input type="text" id="start" placeholder="출발지 주소를 입력하세요">
-    <div id="startList"></div>
+    <div id="startList" class="autocomplete-list"></div>
     <label for="destination">도착지 주소:</label>
     <input type="text" id="destination" placeholder="도착지 주소를 입력하세요">
-    <div id="destinationList"></div>
+    <div id="destinationList" class="autocomplete-list"></div>
     <button onclick="findRoute()">경로 찾기</button>
     <div id="map"></div>
 
@@ -147,6 +165,7 @@
         var startAutocomplete = new naver.maps.autocomplete.Input("start", {
             // 자동 완성 후 선택 시
             onSelect: function(item) {
+                document.getElementById('start').value = item.address; // 선택된 주소로 입력란 채우기
                 findRoute(); // 경로 찾기 함수 호출
             }
         });
@@ -155,7 +174,32 @@
         var destinationAutocomplete = new naver.maps.autocomplete.Input("destination", {
             // 자동 완성 후 선택 시
             onSelect: function(item) {
+                document.getElementById('destination').value = item.address; // 선택된 주소로 입력란 채우기
                 findRoute(); // 경로 찾기 함수 호출
+            }
+        });
+
+        // 출발지 주소 자동 완성 리스트 표시
+        startAutocomplete.attach({
+            container: document.getElementById('startList'),
+            type: 'list', // 리스트 형태로 표시
+            display: function(item) {
+                var div = document.createElement('div');
+                div.textContent = item.address;
+                div.className = 'autocomplete-item';
+                return div;
+            }
+        });
+
+        // 도착지 주소 자동 완성 리스트 표시
+        destinationAutocomplete.attach({
+            container: document.getElementById('destinationList'),
+            type: 'list', // 리스트 형태로 표시
+            display: function(item) {
+                var div = document.createElement('div');
+                div.textContent = item.address;
+                div.className = 'autocomplete-item';
+                return div;
             }
         });
 
