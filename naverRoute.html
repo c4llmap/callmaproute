@@ -102,7 +102,7 @@
 
                 var startCoords = response.result.items[0].point;
                 if (startMarker) {
-                    startMarker.setMap(null); // 이전 마커 제거
+                    startMarker.setMap(null); // 이전 출발지 마커 제거
                 }
                 startMarker = new naver.maps.Marker({
                     position: startCoords,
@@ -120,7 +120,7 @@
 
                     var destinationCoords = response.result.items[0].point;
                     if (destinationMarker) {
-                        destinationMarker.setMap(null); // 이전 마커 제거
+                        destinationMarker.setMap(null); // 이전 도착지 마커 제거
                     }
                     destinationMarker = new naver.maps.Marker({
                         position: destinationCoords,
