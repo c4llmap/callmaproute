@@ -77,6 +77,18 @@
             var startAddress = document.getElementById('start').value;
             var destinationAddress = document.getElementById('destination').value;
 
+            // 출발지 주소 유효성 검사
+            if (!startAddress.trim()) {
+                alert('출발지를 입력하세요.');
+                return;
+            }
+
+            // 도착지 주소 유효성 검사
+            if (!destinationAddress.trim()) {
+                alert('도착지를 입력하세요.');
+                return;
+            }
+
             naver.maps.Service.geocode({
                 address: startAddress
             }, function(status, response) {
