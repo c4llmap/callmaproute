@@ -13,7 +13,18 @@
 
     #map {
         width: 100%;
-        height: 300px; /* 더 작은 화면 높이에 맞게 조정 */
+        height: 300px;
+    }
+
+    #restaurantList {
+        list-style-type: none;
+        padding: 0;
+        margin-top: 20px;
+    }
+
+    #restaurantList li {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
     }
 
     h1 {
@@ -51,46 +62,26 @@
     button:hover {
         background-color: #45a049;
     }
-
-    .autocomplete-list {
-        position: absolute;
-        background-color: #f1f1f1;
-        border: 1px solid #ccc;
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 1000;
-    }
-
-    .autocomplete-item {
-        padding: 10px;
-        cursor: pointer;
-    }
-
-    .autocomplete-item:hover {
-        background-color: #ddd;
-    }
 </style>
 </head>
 <body>
     <h1>맛집과 경로 추천</h1>
     <label for="start">출발지 주소:</label>
     <input type="text" id="start" placeholder="출발지 주소를 입력하세요">
-    <div id="startList" class="autocomplete-list"></div>
     <label for="destination">도착지 주소:</label>
     <input type="text" id="destination" placeholder="도착지 주소를 입력하세요">
-    <div id="destinationList" class="autocomplete-list"></div>
     <button onclick="findRoute()">경로 찾기</button>
     <div id="map"></div>
+    <ul id="restaurantList"></ul>
 
     <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6bpvouorsn&submodules=geocoder"></script>
     <script>
         var map;
-        var startMarker;
-        var destinationMarker;
+        var midpointMarker;
 
         function initMap() {
             map = new naver.maps.Map('map', {
-                center: new naver.maps.LatLng(36.8152, 127.1134), // 천안 백석대로 변경
+                center: new naver.maps.LatLng(37.5665, 126.9780),
                 zoom: 10
             });
         }
@@ -99,7 +90,6 @@
             var startAddress = document.getElementById('start').value;
             var destinationAddress = document.getElementById('destination').value;
 
-            // 출발지 주소를 좌표로 변환하여 지도에 마커 표시
             naver.maps.Service.geocode({
                 address: startAddress
             }, function(status, response) {
@@ -109,15 +99,7 @@
                 }
 
                 var startCoords = response.result.items[0].point;
-                if (startMarker) {
-                    startMarker.setMap(null); // 이전 출발지 마커 제거
-                }
-                startMarker = new naver.maps.Marker({
-                    position: startCoords,
-                    map: map
-                });
 
-                // 도착지 주소를 좌표로 변환하여 지도에 마커 표시
                 naver.maps.Service.geocode({
                     address: destinationAddress
                 }, function(status, response) {
@@ -127,64 +109,61 @@
                     }
 
                     var destinationCoords = response.result.items[0].point;
-                    if (destinationMarker) {
-                        destinationMarker.setMap(null); // 이전 도착지 마커 제거
+
+                    var midpoint = getMidpoint(startCoords, destinationCoords);
+                    if (midpointMarker) {
+                        midpointMarker.setMap(null);
                     }
-                    destinationMarker = new naver.maps.Marker({
-                        position: destinationCoords,
+                    midpointMarker = new naver.maps.Marker({
+                        position: midpoint,
                         map: map
                     });
 
-                    // 출발지와 도착지로 경로 표시
-                    var directionsService = new naver.maps.DirectionsService();
-                    var directionsRenderer = new naver.maps.DirectionsRenderer({
-                        map: map,
-                        preserveViewport: true
-                    });
-
-                    var request = {
-                        start: startCoords,
-                        destination: destinationCoords,
-                        options: {
-                            mode: naver.maps.Directions.Mode.TRANSIT
-                        }
-                    };
-
-                    directionsService.route(request, function(response, status) {
-                        if (status === naver.maps.Directions.Service.Status.OK) {
-                            directionsRenderer.setDirections(response);
-                        } else {
-                            alert('경로를 찾을 수 없습니다.');
-                        }
-                    });
+                    // 중간 지점 주변의 맛집 추천을 요청
+                    recommendRestaurants(midpoint);
                 });
             });
         }
 
-        // 출발지 주소 자동 완성 기능 추가
-        var startAutocomplete = new naver.maps.autocomplete.Input("start", {
-            // 자동 완성 후 선택 시
-            onSelect: function(item) {
-                document.getElementById('start').value = item.address; // 선택된 주소로 입력란 채우기
-                findRoute(); // 경로 찾기 함수 호출
-            }
-        });
+        function getMidpoint(coords1, coords2) {
+            var lat1 = coords1.y;
+            var lng1 = coords1.x;
+            var lat2 = coords2.y;
+            var lng2 = coords2.x;
 
-        // 도착지 주소 자동 완성 기능 추가
-        var destinationAutocomplete = new naver.maps.autocomplete.Input("destination", {
-            // 자동 완성 후 선택 시
-            onSelect: function(item) {
-                document.getElementById('destination').value = item.address; // 선택된 주소로 입력란 채우기
-                findRoute(); // 경로 찾기 함수 호출
-            }
-        });
+            var latMid = (lat1 + lat2) / 2;
+            var lngMid = (lng1 + lng2) / 2;
 
-        // 출발지 주소 자동 완성 리스트 표시
-        startAutocomplete.attach({
-            container: document.getElementById('startList'),
-            type: 'list', // 리스트 형태로 표시
-            display: function(item) {
-                var div = document.createElement('div');
-                div.textContent = item.address;
-                div.className = 'autocomplete-item';
-                div
+            return new naver.maps.LatLng(latMid, lngMid);
+        }
+
+        function recommendRestaurants(midpoint) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var restaurantList = JSON.parse(this.responseText);
+                    displayRestaurants(restaurantList);
+                }
+            };
+            xhttp.open("GET", "recommend_restaurants.php?lat=" + midpoint.lat() + "&lng=" + midpoint.lng(), true);
+            xhttp.send();
+        }
+
+        function displayRestaurants(restaurantList) {
+            var ul = document.getElementById("restaurantList");
+            ul.innerHTML = "";
+            restaurantList.forEach(function(restaurant) {
+                var li = document.createElement("li");
+                li.textContent = restaurant.name + " - " + restaurant.address;
+                ul.appendChild(li);
+            });
+        }
+    </script>
+    <script type="text/javascript">
+        function loadMap() {
+            initMap();
+        }
+    </script>
+    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6bpvouorsn&submodules=geocoder&callback=loadMap"></script>
+</body>
+</html>
