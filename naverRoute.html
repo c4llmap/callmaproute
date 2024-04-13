@@ -65,6 +65,8 @@
     <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6bpvouorsn&submodules=geocoder"></script>
     <script>
         var map;
+        var startMarker;
+        var destinationMarker;
 
         function initMap() {
             map = new naver.maps.Map('map', {
@@ -89,6 +91,7 @@
                 return;
             }
 
+            // 출발지 주소를 세부 주소로 변환하여 지도에 마커 표시
             naver.maps.Service.geocode({
                 address: startAddress
             }, function(status, response) {
@@ -98,7 +101,15 @@
                 }
 
                 var startCoords = response.result.items[0].point;
+                if (startMarker) {
+                    startMarker.setMap(null); // 이전 마커 제거
+                }
+                startMarker = new naver.maps.Marker({
+                    position: startCoords,
+                    map: map
+                });
 
+                // 도착지 주소를 세부 주소로 변환하여 지도에 마커 표시
                 naver.maps.Service.geocode({
                     address: destinationAddress
                 }, function(status, response) {
@@ -108,7 +119,15 @@
                     }
 
                     var destinationCoords = response.result.items[0].point;
+                    if (destinationMarker) {
+                        destinationMarker.setMap(null); // 이전 마커 제거
+                    }
+                    destinationMarker = new naver.maps.Marker({
+                        position: destinationCoords,
+                        map: map
+                    });
 
+                    // 출발지와 도착지로 경로 표시
                     var directionsService = new naver.maps.DirectionsService();
                     var directionsRenderer = new naver.maps.DirectionsRenderer({
                         map: map,
