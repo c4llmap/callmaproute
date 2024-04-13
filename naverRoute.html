@@ -57,8 +57,10 @@
     <h1>맛집과 경로 추천</h1>
     <label for="start">출발지 주소:</label>
     <input type="text" id="start" placeholder="출발지 주소를 입력하세요">
+    <div id="startList"></div>
     <label for="destination">도착지 주소:</label>
     <input type="text" id="destination" placeholder="도착지 주소를 입력하세요">
+    <div id="destinationList"></div>
     <button onclick="findRoute()">경로 찾기</button>
     <div id="map"></div>
 
@@ -140,6 +142,23 @@
                 });
             });
         }
+
+        // 출발지 주소 자동 완성 기능 추가
+        var startAutocomplete = new naver.maps.autocomplete.Input("start", {
+            // 자동 완성 후 선택 시
+            onSelect: function(item) {
+                findRoute(); // 경로 찾기 함수 호출
+            }
+        });
+
+        // 도착지 주소 자동 완성 기능 추가
+        var destinationAutocomplete = new naver.maps.autocomplete.Input("destination", {
+            // 자동 완성 후 선택 시
+            onSelect: function(item) {
+                findRoute(); // 경로 찾기 함수 호출
+            }
+        });
+
     </script>
     <script type="text/javascript">
         function loadMap() {
