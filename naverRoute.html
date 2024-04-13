@@ -68,7 +68,7 @@
 
         function initMap() {
             map = new naver.maps.Map('map', {
-                center: new naver.maps.LatLng(37.5665, 126.9780),
+                center: new naver.maps.LatLng(36.8152, 127.1134), // 천안 백석대로 변경
                 zoom: 10
             });
         }
@@ -80,7 +80,7 @@
             naver.maps.Service.geocode({
                 address: startAddress
             }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK) {
+                if (status !== naver.maps.Service.Status.OK || !response.result || !response.result.items || !response.result.items[0]) {
                     alert('출발지를 찾을 수 없습니다.');
                     return;
                 }
@@ -90,7 +90,7 @@
                 naver.maps.Service.geocode({
                     address: destinationAddress
                 }, function(status, response) {
-                    if (status !== naver.maps.Service.Status.OK) {
+                    if (status !== naver.maps.Service.Status.OK || !response.result || !response.result.items || !response.result.items[0]) {
                         alert('도착지를 찾을 수 없습니다.');
                         return;
                     }
