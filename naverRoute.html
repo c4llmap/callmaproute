@@ -162,7 +162,7 @@
         }
 
         // 출발지 주소 자동 완성 기능 추가
-        var startAutocomplete = new naver.maps.autocomplete.Input("start", {
+        var startAutocomplete = new naver.maps.AutoComplete('start', {
             // 자동 완성 후 선택 시
             onSelect: function(item) {
                 document.getElementById('start').value = item.address; // 선택된 주소로 입력란 채우기
@@ -171,35 +171,11 @@
         });
 
         // 도착지 주소 자동 완성 기능 추가
-        var destinationAutocomplete = new naver.maps.autocomplete.Input("destination", {
+        var destinationAutocomplete = new naver.maps.AutoComplete('destination', {
             // 자동 완성 후 선택 시
             onSelect: function(item) {
                 document.getElementById('destination').value = item.address; // 선택된 주소로 입력란 채우기
                 findRoute(); // 경로 찾기 함수 호출
-            }
-        });
-
-        // 출발지 주소 자동 완성 리스트 표시
-        startAutocomplete.attach({
-            container: document.getElementById('startList'),
-            type: 'list', // 리스트 형태로 표시
-            display: function(item) {
-                var div = document.createElement('div');
-                div.textContent = item.address;
-                div.className = 'autocomplete-item';
-                return div;
-            }
-        });
-
-        // 도착지 주소 자동 완성 리스트 표시
-        destinationAutocomplete.attach({
-            container: document.getElementById('destinationList'),
-            type: 'list', // 리스트 형태로 표시
-            display: function(item) {
-                var div = document.createElement('div');
-                div.textContent = item.address;
-                div.className = 'autocomplete-item';
-                return div;
             }
         });
 
