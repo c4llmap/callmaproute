@@ -21,14 +21,16 @@
     <button onclick="findRoute()">경로 찾기</button>
     <div id="map"></div>
 
-    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6bpvouorsn&submodules=geocoder"></script>
+    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=YOUR_CLIENT_ID&submodules=geocoder"></script>
     <script>
-        var mapOptions = {
-            center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 시청을 중심으로 설정
-            zoom: 10 // 지도 확대 레벨
-        };
+        function initMap() {
+            var mapOptions = {
+                center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 시청을 중심으로 설정
+                zoom: 10 // 지도 확대 레벨
+            };
 
-        var map = new naver.maps.Map('map', mapOptions);
+            var map = new naver.maps.Map('map', mapOptions);
+        }
 
         function findRoute() {
             var startAddress = document.getElementById('start').value;
@@ -106,5 +108,12 @@
             });
         }
     </script>
+    <script type="text/javascript">
+        // Naver 지도 API 로드가 완료되면 initMap 함수를 호출하여 지도를 초기화합니다.
+        function loadMap() {
+            initMap();
+        }
+    </script>
+    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6bpvouorsn&submodules=geocoder&callback=loadMap"></script>
 </body>
 </html>
