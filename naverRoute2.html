@@ -51,170 +51,33 @@
     button:hover {
         background-color: #45a049;
     }
-
-    .autocomplete-list {
-        position: absolute;
-        background-color: #f1f1f1;
-        border: 1px solid #ccc;
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 1000;
-    }
-
-    .autocomplete-item {
-        padding: 10px;
-        cursor: pointer;
-    }
-
-    .autocomplete-item:hover {
-        background-color: #ddd;
-    }
 </style>
 </head>
 <body>
     <h1>맛집과 경로 추천</h1>
     <label for="start">출발지 주소:</label>
     <input type="text" id="start" placeholder="출발지 주소를 입력하세요">
-    <button onclick="searchStartAddress()">검색</button>
-    <div id="startList" class="autocomplete-list"></div>
+    <button onclick="openMap('start')">검색</button>
     <label for="destination">도착지 주소:</label>
     <input type="text" id="destination" placeholder="도착지 주소를 입력하세요">
-    <button onclick="searchDestinationAddress()">검색</button>
-    <div id="destinationList" class="autocomplete-list"></div>
-    <button onclick="findRoute()">경로 찾기</button>
-    <div id="map"></div>
+    <button onclick="openMap('destination')">검색</button>
 
-    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6bpvouorsn&submodules=geocoder"></script>
-    <script>
-        var map;
-        var startMarker;
-        var destinationMarker;
-
-        function initMap() {
-            map = new naver.maps.Map('map', {
-                center: new naver.maps.LatLng(36.8152, 127.1134), // 천안 백석대로 변경
-                zoom: 10
-            });
-        }
-
-        function searchStartAddress() {
-            var startAddress = document.getElementById('start').value;
-
-            if (!startAddress) {
-                alert('출발지 주소를 입력하세요.');
-                return;
-            }
-
-            naver.maps.Service.geocode({
-                address: startAddress
-            }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK || !response.result || !response.result.items || !response.result.items[0]) {
-                    console.log('출발지를 찾을 수 없습니다.', response);
-                    alert('출발지를 찾을 수 없습니다.');
-                    return;
-                }
-
-                var startCoords = response.result.items[0].point;
-                if (startMarker) {
-                    startMarker.setMap(null);
-                }
-                startMarker = new naver.maps.Marker({
-                    position: startCoords,
-                    map: map
-                });
-            });
-        }
-
-        function searchDestinationAddress() {
-            var destinationAddress = document.getElementById('destination').value;
-
-            if (!destinationAddress) {
-                alert('도착지 주소를 입력하세요.');
-                return;
-            }
-
-            naver.maps.Service.geocode({
-                address: destinationAddress
-            }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK || !response.result || !response.result.items || !response.result.items[0]) {
-                    console.log('도착지를 찾을 수 없습니다.', response);
-                    alert('도착지를 찾을 수 없습니다.');
-                    return;
-                }
-
-                var destinationCoords = response.result.items[0].point;
-                if (destinationMarker) {
-                    destinationMarker.setMap(null);
-                }
-                destinationMarker = new naver.maps.Marker({
-                    position: destinationCoords,
-                    map: map
-                });
-            });
-        }
-
-        function findRoute() {
-            var startAddress = document.getElementById('start').value;
-            var destinationAddress = document.getElementById('destination').value;
-
-            if (!startAddress || !destinationAddress) {
-                alert('출발지와 도착지 주소를 입력하세요.');
-                return;
-            }
-
-            naver.maps.Service.geocode({
-                address: startAddress
-            }, function(status, response) {
-                if (status !== naver.maps.Service.Status.OK || !response.result || !response.result.items || !response.result.items[0]) {
-                    console.log('출발지를 찾을 수 없습니다.', response);
-                    alert('출발지를 찾을 수 없습니다.');
-                    return;
-                }
-
-                var startCoords = response.result.items[0].point;
-
-                naver.maps.Service.geocode({
-                    address: destinationAddress
-                }, function(status, response) {
-                    if (status !== naver.maps.Service.Status.OK || !response.result || !response.result.items || !response.result.items[0]) {
-                        console.log('도착지를 찾을 수 없습니다.', response);
-                        alert('도착지를 찾을 수 없습니다.');
-                        return;
-                    }
-
-                    var destinationCoords = response.result.items[0].point;
-
-                    var directionsService = new naver.maps.DirectionsService();
-                    var directionsRenderer = new naver.maps.DirectionsRenderer({
-                        map: map,
-                        preserveViewport: true
-                    });
-
-                    var request = {
-                        start: startCoords,
-                        destination: destinationCoords,
-                        options: {
-                            mode: naver.maps.Directions.Mode.TRANSIT
-                        }
-                    };
-
-                    directionsService.route(request, function(response, status) {
-                        if (status === naver.maps.Directions.Service.Status.OK) {
-                            directionsRenderer.setDirections(response);
-                        } else {
-                            console.log('경로를 찾을 수 없습니다.', response);
-                            alert('경로를 찾을 수 없습니다.');
-                        }
-                    });
-                });
-            });
-        }
-    </script>
     <script type="text/javascript">
-        function loadMap() {
-            initMap();
+        function openMap(type) {
+            var addressInput = document.getElementById(type);
+            var address = addressInput.value;
+
+            if (!address) {
+                alert('주소를 입력하세요.');
+                return;
+            }
+
+            // 네이버 맵 주소 검색 페이지 URL 생성
+            var mapURL = 'https://map.naver.com/?query=' + encodeURIComponent(address);
+
+            // 새 창으로 네이버 맵 열기
+            window.open(mapURL, '_blank');
         }
     </script>
-    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6bpvouorsn&submodules=geocoder&callback=loadMap"></script>
 </body>
 </html>
